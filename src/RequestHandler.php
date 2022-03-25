@@ -25,6 +25,14 @@ class RequestHandler {
 			$webOutput->setContent( $stepsOutput );
 		}
 		echo $webOutput->getHtmlOutput();
+		if ( $rebaseRequest instanceof RebaseRequest ) {
+			$changeHandler = new ChangeHandler( $rebaseRequest );
+			$changeHandler->ensureUpdatedLocalClone();
+			$changeHandler->ensureGitConfig();
+			$changeHandler->downloadTargetPatch();
+			$changeHandler->forceRebasePatch();
+			$changeHandler->uploadRebase();
+		}
 	}
 
 	/**
@@ -99,9 +107,7 @@ class RequestHandler {
 		// git fetch https://gerrit.wikimedia.org/r/{repo} refs/changes/{#1}/{#2}/{#3} &
 		//   & git checkout -b change-{#2} FETCH_HEAD
 		// (with no space between &&, split for phpcs)
-		// where {repo} is a known repository name.
-		// For now, only recognize:
-		// * mediawiki/extensions/examples
+		// where {repo} is a known repository name (see below)
 		$expectReg = '/^git fetch https:\/\/gerrit\.wikimedia\.org\/r\/(\S+) '
 			. '(refs\/changes\/\d+\/(\d+)\/\d+) && '
 			. 'git checkout -b change-(\d+) FETCH_HEAD$/';
@@ -115,7 +121,11 @@ class RequestHandler {
 		}
 		$repoName = $matches[1];
 		// Validate known repos
-		if ( $repoName !== 'mediawiki/extensions/examples' ) {
+		// For now, only recognize:
+		// * mediawiki/extensions/examples
+		if (
+			$repoName !== 'mediawiki/extensions/examples'
+		) {
 			return "Unknown repo: $repoName";
 		}
 		return new RebaseRequest(

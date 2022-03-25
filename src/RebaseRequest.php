@@ -21,6 +21,9 @@ class RebaseRequest {
 	/** @var string */
 	private $changeRef;
 
+	/** @var string */
+	private $gitWithDir;
+
 	/**
 	 * @param string $originalCommand
 	 * @param string $repoName
@@ -42,6 +45,10 @@ class RebaseRequest {
 		// all cloned repos can go in the same folder here without worrying about
 		// conflicts or nesting
 		$this->squashedRepoName = str_replace( '/', '_', $repoName );
+
+		// For running git commands in the directory of the repo this is for
+		// now in force-rebase/src, want to use force-rebase/repositories/squashedRepoName
+		$this->gitWithDir = "git -C ../repositories/{$this->squashedRepoName}";
 	}
 
 	/**
@@ -52,13 +59,35 @@ class RebaseRequest {
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getRepoName(): string {
+		return $this->repoName;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSquashedRepoName(): string {
+		return $this->squashedRepoName;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getGitWithDir(): string {
+		return $this->gitWithDir;
+	}
+
+	/**
 	 * Clone command in case we don't already have a copy of the repo
 	 *
 	 * @return string
 	 */
 	public function getCloneCommand(): string {
 		$gerritSource = "https://gerrit.wikimedia.org/r/{$this->repoName}";
-		return "git --git-dir=repositories clone {$gerritSource} {$this->squashedRepoName}";
+		// now in force-rebase/src, want to use force-rebase/repositories
+		return "git -C ../repositories clone {$gerritSource} {$this->squashedRepoName}";
 	}
 
 	/**
@@ -67,7 +96,10 @@ class RebaseRequest {
 	 * @return string
 	 */
 	public function getUpdateCommand(): string {
-		return "git --git-dir=repositories/{$this->squashedRepoName}/.git pull";
+		// ensure we are on master and delete any to-rebase branch if one exists, put last
+		// because we don't care about any failure
+		return "{$this->gitWithDir} checkout master && {$this->gitWithDir} pull "
+			. "&& {$this->gitWithDir} branch -D to-rebase";
 	}
 
 	/**
@@ -76,9 +108,9 @@ class RebaseRequest {
 	 * @return string
 	 */
 	public function getDownloadCommand(): string {
-		$gitWithDir = "git --git-dir=repositories/{$this->squashedRepoName}/.git";
 		$source = "https://gerrit.wikimedia.org/r/{$this->repoName} {$this->changeRef}";
-		return "$gitWithDir fetch $source && $gitWithDir checkout -b to-rebase FETCH_HEAD";
+		return "{$this->gitWithDir} fetch $source "
+			. "&& {$this->gitWithDir} checkout -b to-rebase FETCH_HEAD";
 	}
 
 }

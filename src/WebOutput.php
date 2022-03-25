@@ -58,7 +58,7 @@ class WebOutput {
 	private function getBodyElement(): string {
 		$pageContent = $this->getPageContent();
 		$footer = $this->getFooter();
-		return "<body>{$pageContent}<hr />{$footer}</body>";
+		return "<body>{$pageContent}{$footer}</body>";
 	}
 
 	/**
@@ -78,7 +78,7 @@ class WebOutput {
 	private function getFooter(): string {
 		$sourceCode = "https://gerrit.wikimedia.org/r/plugins/gitiles/labs/tools/force-rebase/";
 		$sourceCodeLink = "<a href=\"$sourceCode\">Source code</a>";
-		$footer = "<div id=\"site-footer\">$sourceCodeLink</div>";
+		$footer = "<div id=\"site-footer\"><hr />$sourceCodeLink</div>";
 		return $footer;
 	}
 

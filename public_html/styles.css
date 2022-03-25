@@ -2,9 +2,12 @@
  * Styles for the web output
  */
 
-/* Center-align footer contents */
+/* Center-align footer contents, and force to the bottom, even if other content is added later */
 #site-footer {
 	text-align: center;
+	bottom: 20px;
+	position: absolute;
+	width: 99%;
 }
 
 /* Style for the input form */
