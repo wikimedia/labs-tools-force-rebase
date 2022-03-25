@@ -14,6 +14,9 @@ class WebOutput {
 	/** @var string */
 	private $content = '';
 
+	/** @var bool */
+	private $includeLogoutLink = false;
+
 	/**
 	 * @param string $newTitle
 	 */
@@ -26,6 +29,13 @@ class WebOutput {
 	 */
 	public function setContent( string $htmlContent ): void {
 		$this->content = $htmlContent;
+	}
+
+	/**
+	 * Include the logout link in the header
+	 */
+	public function enableLogoutLink(): void {
+		$this->includeLogoutLink = true;
 	}
 
 	/**
@@ -57,8 +67,8 @@ class WebOutput {
 	 */
 	private function getBodyElement(): string {
 		$pageContent = $this->getPageContent();
-		$footer = $this->getFooter();
-		return "<body>{$pageContent}{$footer}</body>";
+		$heading = $this->getHeading();
+		return "<body>{$heading}{$pageContent}</body>";
 	}
 
 	/**
@@ -71,15 +81,25 @@ class WebOutput {
 	}
 
 	/**
-	 * Get the footer div and contents, including links to this source code
+	 * Get the heading div and contents, including links to this source code
 	 *
 	 * @return string
 	 */
-	private function getFooter(): string {
+	private function getHeading(): string {
+		$baseUrl = "https://force-rebase.toolforge.org/index.php";
+		$baseLink = "<a href=\"$baseUrl\">Force rebase</a>";
 		$sourceCode = "https://gerrit.wikimedia.org/r/plugins/gitiles/labs/tools/force-rebase/";
 		$sourceCodeLink = "<a href=\"$sourceCode\">Source code</a>";
-		$footer = "<div id=\"site-footer\"><hr />$sourceCodeLink</div>";
-		return $footer;
+		$logoutLink = '';
+		if ( $this->includeLogoutLink ) {
+			$logoutLink = ' | <a href="/index.php?action=logout">Log out</a>';
+		}
+		$heading = '<div id="site-heading">'
+			. $baseLink
+			. ' | ' . $sourceCodeLink
+			. $logoutLink
+			. '<hr /></div>';
+		return $heading;
 	}
 
 }

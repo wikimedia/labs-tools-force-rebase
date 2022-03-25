@@ -4,6 +4,9 @@
 			"MediaWiki\\Tools\\ForceRebase\\": "src/"
 		}
 	},
+	"require": {
+		"mediawiki/oauthclient": "1.2.0"
+	},
 	"require-dev": {
 		"mediawiki/mediawiki-codesniffer": "38.0.0",
 		"mediawiki/minus-x": "1.1.1",

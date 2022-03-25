@@ -14,17 +14,37 @@ class RequestHandler {
 	 * Actually run everything
 	 */
 	public function run(): void {
+		// phpcs:ignore MediaWiki.Usage.SuperGlobalsUsage.SuperGlobals
+		$action = $_GET['action'] ?? 'view';
+		$authManager = AuthenticationManager::getInstance();
+		if ( $action === 'callback' ) {
+			$authManager->handleLoginCallback();
+		} elseif ( $action === 'logout' ) {
+			$this->handleLogout();
+			return;
+		}
+
+		$currentName = $authManager->getAuthenticatedName();
+		if ( $currentName === false ) {
+			$this->showLogin();
+			return;
+		}
 		$webOutput = new WebOutput();
+		$webOutput->enableLogoutLink();
+
+		$currentNameDisplay = '<div><p>Logged in as: '
+			. htmlspecialchars( $currentName )
+			. '</p></div>';
 
 		$rebaseRequest = $this->getRequestInput();
 		if ( !( $rebaseRequest instanceof RebaseRequest ) ) {
 			// Not provided or invalid, show form
 			$inputForm = $this->getFormOutput( $rebaseRequest );
-			$webOutput->setContent( $inputForm );
+			$webOutput->setContent( $currentNameDisplay . $inputForm );
 		} else {
 			// Provided and valid, show that it was accepted
 			$stepsOutput = $this->getStepsDisplay( $rebaseRequest );
-			$webOutput->setContent( $stepsOutput );
+			$webOutput->setContent( $currentNameDisplay . $stepsOutput );
 		}
 		echo $webOutput->getHtmlOutput();
 		if ( $rebaseRequest instanceof RebaseRequest ) {
@@ -35,6 +55,30 @@ class RequestHandler {
 			$changeHandler->forceRebasePatch();
 			$changeHandler->uploadRebase();
 		}
+	}
+
+	/**
+	 * Show the login link
+	 */
+	private function showLogin(): void {
+		$authUrl = AuthenticationManager::getInstance()->startAuthenticationProcess();
+		$webOutput = new WebOutput();
+		$webOutput->setContent(
+			"<a href=\"$authUrl\">Login with OAuth (beta cluster)</a>"
+		);
+		echo $webOutput->getHtmlOutput();
+	}
+
+	/**
+	 * Logout and show success message
+	 */
+	private function handleLogout(): void {
+		AuthenticationManager::getInstance()->logOut();
+		$webOutput = new WebOutput();
+		$webOutput->setContent(
+			'<p>Successfully logged out</p>'
+		);
+		echo $webOutput->getHtmlOutput();
 	}
 
 	/**

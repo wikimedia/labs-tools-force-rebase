@@ -6,4 +6,5 @@
 
 return [
 	'gerritAccountPassword' => 'Foo',
+	'oauthConsumerSecret' => 'Bar',
 ];
