@@ -6,5 +6,5 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$output = new \MediaWiki\Tools\ForceRebase\WebOutput();
+$output = new \MediaWiki\Tools\ForceRebase\RequestHandler();
 $output->run();
