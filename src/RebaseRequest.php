@@ -24,15 +24,20 @@ class RebaseRequest {
 	/** @var string */
 	private $gitWithDir;
 
+	/** @var string */
+	private $targetBranch;
+
 	/**
 	 * @param string $originalCommand
 	 * @param string $repoName
 	 * @param string $changeRef
+	 * @param string $targetBranch
 	 */
 	public function __construct(
 		string $originalCommand,
 		string $repoName,
-		string $changeRef
+		string $changeRef,
+		string $targetBranch
 	) {
 		// entire `git fetch ... FETCH_HEAD` command
 		$this->originalCommand = $originalCommand;
@@ -40,6 +45,8 @@ class RebaseRequest {
 		$this->repoName = $repoName;
 		// eg refs/changes/47/770047/1
 		$this->changeRef = $changeRef;
+		// 'master' or 'main'
+		$this->targetBranch = $targetBranch;
 
 		// Squash the repo name to replace subfolder slashes with underscores, so that
 		// all cloned repos can go in the same folder here without worrying about
@@ -80,6 +87,13 @@ class RebaseRequest {
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getTargetBranch(): string {
+		return $this->targetBranch;
+	}
+
+	/**
 	 * Clone command in case we don't already have a copy of the repo
 	 *
 	 * @return string
@@ -96,10 +110,11 @@ class RebaseRequest {
 	 * @return string
 	 */
 	public function getUpdateCommand(): string {
-		// ensure we are on master and delete any to-rebase branch if one exists, put last
-		// because we don't care about any failure
-		return "{$this->gitWithDir} checkout master && {$this->gitWithDir} pull "
-			. "&& {$this->gitWithDir} branch -D to-rebase";
+		// ensure we are on target branch and delete any to-rebase branch if one exists,
+		// put last because we don't care about any failure
+		return "{$this->gitWithDir} checkout {$this->targetBranch}"
+			. " && {$this->gitWithDir} pull"
+			. " && {$this->gitWithDir} branch -D to-rebase";
 	}
 
 	/**

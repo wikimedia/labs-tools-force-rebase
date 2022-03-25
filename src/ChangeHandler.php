@@ -83,10 +83,11 @@ class ChangeHandler {
 	}
 
 	/**
-	 * Step 4: do the rebase again master (TODO make the target branch changeable)
+	 * Step 4: do the rebase against target branch
 	 */
 	public function forceRebasePatch(): void {
-		$result = shell_exec( "{$this->gitWithDir} rebase master" );
+		$targetBranch = $this->rebaseRequest->getTargetBranch();
+		$result = shell_exec( "{$this->gitWithDir} rebase {$targetBranch}" );
 		$this->outputCommandResult( __METHOD__, $result );
 		if ( strpos( $result, "Resolve all conflicts manually" ) !== false ) {
 			$result = shell_exec( "{$this->gitWithDir} add ." );
@@ -149,7 +150,8 @@ class ChangeHandler {
 		$targetRepo = $this->rebaseRequest->getRepoName();
 		$gerritTarget = "https://{$gerritAuth}@gerrit.wikimedia.org/r/a/{$targetRepo}";
 
-		return "{$this->gitWithDir} push $gerritTarget HEAD:refs/for/master";
+		$targetBranch = $this->rebaseRequest->getTargetBranch();
+		return "{$this->gitWithDir} push $gerritTarget HEAD:refs/for/{$targetBranch}";
 	}
 
 }

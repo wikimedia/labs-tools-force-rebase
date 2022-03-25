@@ -6,6 +6,8 @@
 
 namespace MediaWiki\Tools\ForceRebase;
 
+use stdClass;
+
 class RequestHandler {
 
 	/**
@@ -36,24 +38,46 @@ class RequestHandler {
 	}
 
 	/**
-	 * Get the form to show to get the copy snippet, with an optional error message for
-	 * a prior input that was invalid
+	 * Get the form to show to get the copy snippet and target branch, pre-filling the last
+	 * values and optionally showing error messages
 	 *
-	 * @param string|false $maybeError
+	 * @param stdClass|false $maybePriorInput
 	 * @return string
 	 */
-	private function getFormOutput( $maybeError ): string {
-		$errorMessage = '';
-		if ( $maybeError !== false ) {
-			$errorMessage = "\n<br><span class=\"input-value-error\">"
-				. htmlspecialchars( $maybeError )
-				. '</span>';
+	private function getFormOutput( $maybePriorInput ): string {
+		// If $maybeError isn't false, it should have the fields
+		// copysnippetInput, copysnippetError, branchInput, branchError
+		// with the inputs being strings and the errors being strings or false
+		$defaultSnippet = '';
+		$defaultBranch = 'master';
+		$snippetError = '';
+		$branchError = '';
+		if ( $maybePriorInput !== false ) {
+			$defaultSnippet = $maybePriorInput->copysnippetInput;
+			$defaultBranch = $maybePriorInput->branchInput;
+
+			if ( $maybePriorInput->copysnippetError !== false ) {
+				$snippetError = "\n<br><span class=\"input-value-error\">"
+					. htmlspecialchars( $maybePriorInput->copysnippetError )
+					. '</span>';
+			}
+			if ( $maybePriorInput->branchError !== false ) {
+				$branchError = "\n<br><span class=\"input-value-error\">"
+					. htmlspecialchars( $maybePriorInput->branchError )
+					. '</span>';
+			}
 		}
-		$inputField = '<input type="text" name="copysnippet" value="" >';
+		$snippetField = '<input type="text" name="copysnippet" value="'
+			. $defaultSnippet . '" >';
+		$branchField = '<input type="text" name="targetbranch" value="'
+			. $defaultBranch . '" >';
 		$submitButton = '<input type="submit" name="submit" value="Submit" >';
+
 		return '<form method="post" action="index.php" id="copy-snippet-form">'
-			. "\nDownload snippet: $inputField"
-			. $errorMessage
+			. "\nDownload snippet: $snippetField"
+			. $snippetError
+			. "\n<br>Target branch: $branchField"
+			. $branchError
 			. "<br>$submitButton"
 			. '</form>';
 	}
@@ -81,26 +105,46 @@ class RequestHandler {
 	}
 
 	/**
-	 * Retrieve the RebaseRequest for the posted parameter 'copysnippet' if present and valid,
-	 * or an error message, or false if not provided at all
+	 * Retrieve the RebaseRequest for the posted parameters 'copysnippet' and 'targetbranch'
+	 * if present and valid, or an stdClass with error messages and the inputs to prefill,
+	 * false if not provided at all
 	 *
-	 * @return string|false|RebaseRequest
+	 * @return stdClass|false|RebaseRequest
 	 */
 	private function getRequestInput() {
 		if ( $_SERVER["REQUEST_METHOD"] !== "POST" ) {
 			return false;
 		}
+		$inputs = (object)[
+			'copysnippetInput' => '',
+			'copysnippetError' => false,
+			'branchInput' => '',
+			'branchError' => false,
+		];
+		// Do branch first so that we can early return easier for the snippet errors
 		// Need to use super globals
 		// phpcs:ignore MediaWiki.Usage.SuperGlobalsUsage.SuperGlobals
-		$parameter = $_POST['copysnippet'] ?? false;
-		if ( $parameter === false ) {
-			return false;
+		$branchParam = $_POST['targetbranch'] ?? '';
+		$branch = trim( $branchParam );
+		$branch = stripslashes( $branch );
+		$inputs->branchInput = $branch;
+		if ( $branch === '' ) {
+			$inputs->branchError = 'Missing target branch';
+		} elseif ( $branch !== 'master' && $branch !== 'main' ) {
+			$inputs->branchError = "Only branches 'master' and 'main' are supported, "
+				. "got '$branch'";
 		}
-		$snippet = trim( $parameter );
+
+		// Need to use super globals
+		// phpcs:ignore MediaWiki.Usage.SuperGlobalsUsage.SuperGlobals
+		$snippetParam = $_POST['copysnippet'] ?? '';
+		$snippet = trim( $snippetParam );
 		$snippet = stripslashes( $snippet );
+		$inputs->copysnippetInput = $snippet;
 
 		if ( $snippet === '' ) {
-			return 'Missing required snippet';
+			$inputs->copysnippetError = 'Missing required snippet';
+			return $inputs;
 		}
 
 		// Test the input, should be in the form of:
@@ -113,25 +157,36 @@ class RequestHandler {
 			. 'git checkout -b change-(\d+) FETCH_HEAD$/';
 		$matches = [];
 		if ( preg_match( $expectReg, $snippet, $matches ) !== 1 ) {
-			return 'Does not match regex';
+			$inputs->copysnippetError = 'Does not match regex';
+			return $inputs;
 		}
 		// should refer to the correct change id in the branch
 		if ( $matches[3] !== $matches[4] ) {
-			return 'Does not have correct change-# number';
+			$inputs->copysnippetError = 'Does not have correct change-# number';
+			return $inputs;
 		}
 		$repoName = $matches[1];
 		// Validate known repos
 		// For now, only recognize:
 		// * mediawiki/extensions/examples
+		// * design/codex
 		if (
 			$repoName !== 'mediawiki/extensions/examples'
+			&& $repoName !== 'design/codex'
 		) {
-			return "Unknown repo: $repoName";
+			$inputs->copysnippetError = "Unknown repo: $repoName";
+			return $inputs;
 		}
+		// After validating snippet, still error from branch
+		if ( $inputs->branchError !== false ) {
+			return $inputs;
+		}
+
 		return new RebaseRequest(
 			$snippet,
 			$repoName,
-			$matches[2]
+			$matches[2],
+			$branch
 		);
 	}
 
