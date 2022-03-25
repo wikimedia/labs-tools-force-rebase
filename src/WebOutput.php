@@ -46,7 +46,8 @@ class WebOutput {
 	 */
 	private function getHeadElement(): string {
 		$title = "<title>{$this->pageTitle}</title>";
-		return "<head>$title</head>";
+		$css = '<link rel="stylesheet" href="/styles.css">';
+		return "<head>{$title}{$css}</head>";
 	}
 
 	/**
@@ -57,7 +58,7 @@ class WebOutput {
 	private function getBodyElement(): string {
 		$pageContent = $this->getPageContent();
 		$footer = $this->getFooter();
-		return "<body>{$pageContent}{$footer}</body>";
+		return "<body>{$pageContent}<hr />{$footer}</body>";
 	}
 
 	/**
