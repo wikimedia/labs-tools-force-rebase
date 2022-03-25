@@ -38,13 +38,25 @@ class ChangeHandler {
 		?string $rawResult
 	): void {
 		if ( $rawResult === '' || $rawResult === null ) {
-			$label = '<p><b>' . htmlspecialchars( $rawLabel ) . '</b>: -nothing-</p>';
+			$label = HTML::rawElement(
+				'p',
+				[],
+				HTML::element( 'b', [], $rawLabel ) . ': -nothing-'
+			);
 			$result = '';
 		} else {
-			$label = '<p><b>' . htmlspecialchars( $rawLabel ) . '</b>:</p>';
-			$result = '<pre>' . htmlspecialchars( $rawResult ) . '</pre>';
+			$label = HTML::rawElement(
+				'p',
+				[],
+				HTML::element( 'b', [], $rawLabel ) . ':'
+			);
+			$result = HTML::element( 'pre', [], $rawResult );
 		}
-		$updateWrapper = "<div class=\"console-update\">{$label}{$result}</div>\n";
+		$updateWrapper = HTML::rawElement(
+			'div',
+			[ 'class' => 'console-update' ],
+			$label . $result
+		);
 		echo $updateWrapper;
 	}
 

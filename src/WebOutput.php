@@ -44,9 +44,11 @@ class WebOutput {
 	 * @return string
 	 */
 	public function getHtmlOutput(): string {
-		$head = $this->getHeadElement();
-		$body = $this->getBodyElement();
-		return "<html>{$head}{$body}</html>";
+		return Html::rawElement(
+			'html',
+			[],
+			$this->getHeadElement() . $this->getBodyElement()
+		);
 	}
 
 	/**
@@ -55,9 +57,12 @@ class WebOutput {
 	 * @return string
 	 */
 	private function getHeadElement(): string {
-		$title = "<title>{$this->pageTitle}</title>";
-		$css = '<link rel="stylesheet" href="/styles.css">';
-		return "<head>{$title}{$css}</head>";
+		$title = Html::element( 'title', [], $this->pageTitle );
+		$css = Html::element(
+			'link',
+			[ 'rel' => 'stylesheet', 'href' => '/styles.css' ]
+		);
+		return Html::rawElement( 'head', [], $title . $css );
 	}
 
 	/**
@@ -66,9 +71,11 @@ class WebOutput {
 	 * @return string
 	 */
 	private function getBodyElement(): string {
-		$pageContent = $this->getPageContent();
-		$heading = $this->getHeading();
-		return "<body>{$heading}{$pageContent}</body>";
+		return Html::rawElement(
+			'body',
+			[],
+			$this->getHeading() . $this->getPageContent()
+		);
 	}
 
 	/**
@@ -77,7 +84,11 @@ class WebOutput {
 	 * @return string
 	 */
 	private function getPageContent(): string {
-		return "<div id=\"main-content\">{$this->content}</div>";
+		return Html::rawElement(
+			'div',
+			[ 'id' => 'main-content' ],
+			$this->content
+		);
 	}
 
 	/**
@@ -86,19 +97,29 @@ class WebOutput {
 	 * @return string
 	 */
 	private function getHeading(): string {
-		$baseUrl = "https://force-rebase.toolforge.org/index.php";
-		$baseLink = "<a href=\"$baseUrl\">Force rebase</a>";
-		$sourceCode = "https://gerrit.wikimedia.org/r/plugins/gitiles/labs/tools/force-rebase/";
-		$sourceCodeLink = "<a href=\"$sourceCode\">Source code</a>";
-		$logoutLink = '';
+		$baseLink = Html::element(
+			'a',
+			[ 'href' => 'https://force-rebase.toolforge.org/index.php' ],
+			'Force rebase'
+		);
+		$sourceCodeLink = Html::element(
+			'a',
+			[ 'href' => 'https://gerrit.wikimedia.org/g/labs/tools/force-rebase/' ],
+			'Source code'
+		);
+		$headingLinks = $baseLink . ' | ' . $sourceCodeLink;
 		if ( $this->includeLogoutLink ) {
-			$logoutLink = ' | <a href="/index.php?action=logout">Log out</a>';
+			$headingLinks .= ' | ' . Html::element(
+				'a',
+				[ 'href' => '/index.php?action=logout' ],
+				'Log out'
+			);
 		}
-		$heading = '<div id="site-heading">'
-			. $baseLink
-			. ' | ' . $sourceCodeLink
-			. $logoutLink
-			. '<hr /></div>';
+		$heading = Html::rawElement(
+			'div',
+			[ 'id' => 'site-heading' ],
+			$headingLinks . Html::element( 'hr' )
+		);
 		return $heading;
 	}
 

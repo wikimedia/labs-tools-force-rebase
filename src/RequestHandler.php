@@ -32,10 +32,7 @@ class RequestHandler {
 		$webOutput = new WebOutput();
 		$webOutput->enableLogoutLink();
 
-		$currentNameDisplay = '<div><p>Logged in as: '
-			. htmlspecialchars( $currentName )
-			. '</p></div>';
-
+		$currentNameDisplay = HTML::element( 'p', [], "Logged in as: $currentName" );
 		$rebaseRequest = $this->getRequestInput();
 		if ( !( $rebaseRequest instanceof RebaseRequest ) ) {
 			// Not provided or invalid, show form
@@ -64,7 +61,11 @@ class RequestHandler {
 		$authUrl = AuthenticationManager::getInstance()->startAuthenticationProcess();
 		$webOutput = new WebOutput();
 		$webOutput->setContent(
-			"<a href=\"$authUrl\">Login with OAuth (beta cluster)</a>"
+			HTML::element(
+				'a',
+				[ 'href' => $authUrl ],
+				'Login with OAuth (beta cluster)'
+			)
 		);
 		echo $webOutput->getHtmlOutput();
 	}
@@ -76,7 +77,7 @@ class RequestHandler {
 		AuthenticationManager::getInstance()->logOut();
 		$webOutput = new WebOutput();
 		$webOutput->setContent(
-			'<p>Successfully logged out</p>'
+			HTML::element( 'p', [], 'Successfully logged out' )
 		);
 		echo $webOutput->getHtmlOutput();
 	}
@@ -101,29 +102,50 @@ class RequestHandler {
 			$defaultBranch = $maybePriorInput->branchInput;
 
 			if ( $maybePriorInput->copysnippetError !== false ) {
-				$snippetError = "\n<br><span class=\"input-value-error\">"
-					. htmlspecialchars( $maybePriorInput->copysnippetError )
-					. '</span>';
+				$snippetError = "\n"
+					. HTML::element( 'br' )
+					. HTML::element(
+						'span',
+						[ 'class' => 'input-value-error' ],
+						$maybePriorInput->copysnippetError
+					);
 			}
 			if ( $maybePriorInput->branchError !== false ) {
-				$branchError = "\n<br><span class=\"input-value-error\">"
-					. htmlspecialchars( $maybePriorInput->branchError )
-					. '</span>';
+				$branchError = "\n"
+					. HTML::element( 'br' )
+					. HTML::element(
+						'span',
+						[ 'class' => 'input-value-error' ],
+						$maybePriorInput->branchError
+					);
 			}
 		}
-		$snippetField = '<input type="text" name="copysnippet" value="'
-			. $defaultSnippet . '" >';
-		$branchField = '<input type="text" name="targetbranch" value="'
-			. $defaultBranch . '" >';
-		$submitButton = '<input type="submit" name="submit" value="Submit" >';
-
-		return '<form method="post" action="index.php" id="copy-snippet-form">'
-			. "\nDownload snippet: $snippetField"
-			. $snippetError
-			. "\n<br>Target branch: $branchField"
-			. $branchError
-			. "<br>$submitButton"
-			. '</form>';
+		$snippetField = HTML::element(
+			'input',
+			[ 'type' => 'text', 'name' => 'copysnippet', 'value' => $defaultSnippet, ]
+		);
+		$branchField = HTML::element(
+			'input',
+			[ 'type' => 'text', 'name' => 'targetbranch', 'value' => $defaultBranch, ]
+		);
+		$submitButton = HTML::element(
+			'input',
+			[ 'type' => 'submit', 'name' => 'submit', 'value' => 'Submit', ]
+		);
+		$form = HTML::rawElement(
+			'form',
+			[
+				'method' => 'post',
+				'action' => 'index.php',
+				'id' => 'copy-snippet-form',
+			],
+			"\nDownload snippet: {$snippetField}{$snippetError}"
+				. "\n" . HTML::element( 'br' )
+				. "Target branch: {$branchField}{$branchError}"
+				. "\n" . HTML::element( 'br' )
+				. $submitButton
+		);
+		return $form;
 	}
 
 	/**
@@ -133,19 +155,30 @@ class RequestHandler {
 	 * @return string
 	 */
 	private function getStepsDisplay( RebaseRequest $request ): string {
-		$inputCommand = htmlspecialchars( $request->getOriginalCommand() );
-		$cloneCommand = htmlspecialchars( $request->getCloneCommand() );
-		$updateCommand = htmlspecialchars( $request->getUpdateCommand() );
-		$downloadCommand = htmlspecialchars( $request->getDownloadCommand() );
+		$inputCommand = HTML::element( 'b', [], $request->getOriginalCommand() );
+		$cloneCommand = HTML::element( 'b', [], $request->getCloneCommand() );
+		$updateCommand = HTML::element( 'b', [], $request->getUpdateCommand() );
+		$downloadCommand = HTML::element( 'b', [], $request->getDownloadCommand() );
 
 		$output = '';
-		$output .= "<p>For the input command: <b>$inputCommand</b>:</p>\n";
-		$output .= '<p>If there is not already a copy of the code, it will be cloned with '
-			. "<b>$cloneCommand</b>, otherwise the existing clone will be updated with "
-			. "<b>$updateCommand</b>.</p>\n";
-		$output .= '<p>The patch to rebase will then be downloaded with '
-			. "<b>$downloadCommand</b>.</p>\n";
-		return "<div>$output</div>";
+		$output .= HTML::rawElement(
+			'p',
+			[],
+			"For the input command: $inputCommand:"
+		) . "\n";
+		$output .= HTML::rawElement(
+			'p',
+			[],
+			'If there is not already a copy of the code, it will be cloned with '
+				. $cloneCommand . ', otherwise the existing clone will be updated '
+				. "with $updateCommand."
+		) . "\n";
+		$output .= HTML::rawElement(
+			'p',
+			[],
+			"The patch to rebase will then be downloaded with $downloadCommand."
+		) . "\n";
+		return HTML::rawElement( 'div', [], $output );
 	}
 
 	/**
