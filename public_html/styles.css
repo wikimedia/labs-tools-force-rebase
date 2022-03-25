@@ -6,3 +6,23 @@
 #site-footer {
 	text-align: center;
 }
+
+/* Style for the input form */
+#copy-snippet-form {
+	border: 1px solid black;
+	padding: 10px;
+	width: fit-content;
+	/* Center in the page */
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* Error message for copy snippet */
+.input-value-error {
+	color: red;
+}
+
+/* Input form snippet field */
+input[ name="copysnippet" ] {
+	width: 1000px;
+}
