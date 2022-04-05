@@ -246,9 +246,11 @@ class RequestHandler {
 		// Validate known repos
 		// For now, only recognize:
 		// * mediawiki/extensions/examples
+		// * mediawiki/extensions/Scribunto
 		// * design/codex
 		if (
 			$repoName !== 'mediawiki/extensions/examples'
+			&& $repoName !== 'mediawiki/extensions/Scribunto'
 			&& $repoName !== 'design/codex'
 		) {
 			$inputs->copysnippetError = "Unknown repo: $repoName";
