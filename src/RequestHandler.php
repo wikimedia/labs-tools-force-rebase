@@ -245,11 +245,13 @@ class RequestHandler {
 		$repoName = $matches[1];
 		// Validate known repos
 		// For now, only recognize:
+		// * mediawiki/core
 		// * mediawiki/extensions/examples
 		// * mediawiki/extensions/Scribunto
 		// * design/codex
 		if (
-			$repoName !== 'mediawiki/extensions/examples'
+			$repoName !== 'mediawiki/core'
+			&& $repoName !== 'mediawiki/extensions/examples'
 			&& $repoName !== 'mediawiki/extensions/Scribunto'
 			&& $repoName !== 'design/codex'
 		) {
