@@ -248,12 +248,14 @@ class RequestHandler {
 		// * mediawiki/core
 		// * mediawiki/extensions/examples
 		// * mediawiki/extensions/AbuseFilter
+		// * mediawiki/extensions/PageTriage
 		// * mediawiki/extensions/Scribunto
 		// * design/codex
 		if (
 			$repoName !== 'mediawiki/core'
 			&& $repoName !== 'mediawiki/extensions/examples'
 			&& $repoName !== 'mediawiki/extensions/AbuseFilter'
+			&& $repoName !== 'mediawiki/extensions/PageTriage'
 			&& $repoName !== 'mediawiki/extensions/Scribunto'
 			&& $repoName !== 'design/codex'
 		) {
