@@ -80,9 +80,10 @@ class ChangeHandler {
 	 * Step 2: ensure git config is set correctly
 	 */
 	public function ensureGitConfig(): void {
-		// TODO make these configurable
-		shell_exec( "{$this->gitWithDir} config user.email dannys712.wiki+bot@gmail.com" );
-		shell_exec( "{$this->gitWithDir} config user.name ForceRebase" );
+		$gitConfigEmail = Configuration::getSetting( 'git-config-email' );
+		$gitConfigName = Configuration::getSetting( 'git-config-name' );
+		shell_exec( "{$this->gitWithDir} config user.email {$gitConfigEmail}" );
+		shell_exec( "{$this->gitWithDir} config user.name {$gitConfigName}" );
 	}
 
 	/**
@@ -150,8 +151,7 @@ class ChangeHandler {
 	 * @return string
 	 */
 	private function getPushCommand( bool $useRealPassword ): string {
-		// TODO CONFIGURATION
-		$gerritAccountName = "d712-bot";
+		$gerritAccountName = Configuration::getSetting( 'gerrit-account-name' );
 		// HTTP authentication code, not normal account password
 		$gerritAccountPass = "<secret password>";
 		if ( $useRealPassword ) {
