@@ -4,21 +4,31 @@
 			"MediaWiki\\Tools\\ForceRebase\\": "src/"
 		}
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"MediaWiki\\Tools\\ForceRebase\\Test\\": "tests/"
+		}
+	},
 	"require": {
 		"mediawiki/oauthclient": "1.2.0"
 	},
 	"require-dev": {
 		"mediawiki/mediawiki-codesniffer": "38.0.0",
 		"mediawiki/minus-x": "1.1.1",
+		"ockcyp/covers-validator": "1.6.0",
 		"php-parallel-lint/php-console-highlighter": "0.5.0",
-		"php-parallel-lint/php-parallel-lint": "1.3.1"
+		"php-parallel-lint/php-parallel-lint": "1.3.1",
+		"phpunit/phpunit": "^9.5"
 	},
 	"scripts": {
 		"test": [
 			"parallel-lint . --exclude vendor --exclude node_modules",
+			"phpunit",
+			"covers-validator",
 			"@phpcs",
 			"minus-x check ."
 		],
+		"cover": "phpunit --coverage-html coverage",
 		"fix": [
 			"minus-x fix .",
 			"phpcbf"

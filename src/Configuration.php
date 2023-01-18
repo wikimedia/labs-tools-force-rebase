@@ -38,7 +38,7 @@ class Configuration {
 	public static function getSetting( string $settingName ) {
 		// Not using isset in case the value is null
 		if ( !array_key_exists( $settingName, self::CONFIG_SETTINGS ) ) {
-			throw new InvalidArgumentException( "Unknown setting $settingName" );
+			throw new InvalidArgumentException( "Unknown setting '$settingName'" );
 		}
 		return self::CONFIG_SETTINGS[ $settingName ];
 	}
@@ -53,7 +53,7 @@ class Configuration {
 		}
 		// Not using isset in case the value is null
 		if ( !array_key_exists( $secretName, self::$secretValues ) ) {
-			throw new InvalidArgumentException( "Unknown secret $secretName" );
+			throw new InvalidArgumentException( "Unknown secret '$secretName'" );
 		}
 		return self::$secretValues[ $secretName ];
 	}
